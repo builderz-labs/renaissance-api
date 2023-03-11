@@ -1,0 +1,7 @@
+name = "renaissance-api"
+main = "./src/index.ts"
+compatibility_date = "2022-05-03"
+node_compat = true
+services = [
+  { binding = "HELIUS", service = "helius-rpc-proxy", environment = "production" }
+]
