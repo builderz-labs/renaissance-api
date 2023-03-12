@@ -13,7 +13,7 @@
 		"wrangler": "^2.1.14"
 	},
 	"dependencies": {
-		"@builderz/royalty-solution": "^1.0.1",
+		"@builderz/royalty-solution": "^1.0.2",
 		"@solana/web3.js": "^1.73.3",
 		"itty-router": "^3.0.11"
 	}

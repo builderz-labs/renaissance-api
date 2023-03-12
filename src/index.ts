@@ -5,10 +5,17 @@ interface Env {
 	HELIUS: any;
 }
 
+const corsHeaders = {
+	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Methods': 'GET, HEAD, POST, PUT, OPTIONS',
+	'Access-Control-Allow-Headers': '*',
+};
+
 const router = Router();
 
+router.options('*', () => new Response(null, { status: 200, headers: corsHeaders }));
+
 router.get('/api/test', (request, env: Env) => {
-	console.log(env);
 	return new Response('Hello, world! This is the root page of your Worker template.');
 });
 

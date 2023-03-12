@@ -1,15 +1,16 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 // import _ from 'lodash';
 import axios from 'axios';
-import { PROGRAM_ID, NftState } from '@builderz/royalty-solution';
+import { PROGRAM_ID } from '@builderz/royalty-solution';
+import { getNftStateApi } from '../utils';
 
 interface checkNftReq {
 	mints: string[];
 }
 
-export const tryGetAccount = async (conn: Connection, nftStateAddress: PublicKey) => {
+export const tryGetAccount = async (nftStateAddress: PublicKey, env: any) => {
 	try {
-		return await NftState.fromAccountAddress(conn, nftStateAddress);
+		return await getNftStateApi(nftStateAddress, env);
 	} catch (error) {
 		return null;
 	}
@@ -33,8 +34,6 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 		console.error(error);
 		return new Response('Invalid request body', { status: 400 });
 	}
-
-	const conn = new Connection('https://helius-rpc-proxy.builderzlabs.workers.dev');
 
 	let mintSubArrays: string[][] = [];
 
@@ -201,7 +200,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 						PROGRAM_ID
 					);
 
-					const nftStateAccount = await tryGetAccount(conn, nftStateAddress);
+					const nftStateAccount = await tryGetAccount(nftStateAddress, env);
 
 					if (
 						nftStateAccount &&
@@ -231,7 +230,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 		}
 	}
 
-	const headers = { 'Content-type': 'application/json' };
+	const headers = { 'Content-type': 'application/json', 'Access-Control-Allow-Origin': '*' };
 	return new Response(JSON.stringify(checkedNfts), { headers });
 };
 
