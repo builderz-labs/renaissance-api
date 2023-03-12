@@ -204,7 +204,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 
 					if (
 						nftStateAccount &&
-						Number(nftStateAccount.repayTimestamp) >= nft.latestSale.timestamp
+						Number(nftStateAccount.repayTimestamp.toNumber()) >= nft.latestSale.timestamp
 					) {
 						// Royalties paid
 						checkedNfts.push({

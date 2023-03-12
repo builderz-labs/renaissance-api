@@ -1,4 +1,4 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { NftState } from '@builderz/royalty-solution';
 
 export const getNftStateApi = async (address: PublicKey, env: any): Promise<NftState> => {
@@ -22,17 +22,9 @@ export const getNftStateApi = async (address: PublicKey, env: any): Promise<NftS
 		})
 	).json();
 
-	let res = accountInfo.result.value;
-
-	res.data = accountInfo.result.value.data = Buffer.from(
-		accountInfo.result.value.data[0],
-		'base64'
-	);
-	res.owner = new PublicKey(accountInfo.result.value.owner);
-
 	if (!accountInfo) {
 		throw new Error(`Account ${address.toBase58()} not found`);
 	}
-	const [nftState] = NftState.fromAccountInfo(res);
+	const [nftState] = NftState.fromAccountInfo(accountInfo);
 	return nftState;
 };
