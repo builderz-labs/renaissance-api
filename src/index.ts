@@ -1,5 +1,6 @@
 import { Router } from 'itty-router';
 import checkNfts from './handlers/checkNfts';
+import checkNftsUnlisted from './handlers/checkNftsUnlisted';
 
 interface Env {
 	HELIUS: any;
@@ -20,6 +21,8 @@ router.get('/api/test', (request, env: Env) => {
 });
 
 router.post('/api/check-nfts', async (request, env: Env) => checkNfts(request, env));
+
+router.post('/api/unlisted-nfts', async (request, env: Env) => checkNftsUnlisted(request, env));
 
 router.all('*', () => new Response('404, not found!', { status: 404 }));
 
