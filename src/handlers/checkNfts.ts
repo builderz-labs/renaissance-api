@@ -159,8 +159,6 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 				if (royaltyPayment) {
 					// Full royalties paid at sale
 					if (royaltiesToPay * 0.99 <= royaltyPayment.amount * (100 / royaltyReceiver.share)) {
-						console.log('Royalty Payment in tool found');
-
 						checkedNfts.push({
 							mint: nft.mint,
 							royaltiesPaid: true,
