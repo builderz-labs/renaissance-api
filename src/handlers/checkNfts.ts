@@ -1,6 +1,4 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-// import _ from 'lodash';
-import axios from 'axios';
+import { PublicKey } from '@solana/web3.js';
 import { PROGRAM_ID } from '@builderz/royalty-solution';
 import { getNftStateApi } from '../utils';
 
@@ -161,6 +159,8 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 				if (royaltyPayment) {
 					// Full royalties paid at sale
 					if (royaltiesToPay * 0.99 <= royaltyPayment.amount * (100 / royaltyReceiver.share)) {
+						console.log('Royalty Payment in tool found');
+
 						checkedNfts.push({
 							mint: nft.mint,
 							royaltiesPaid: true,
@@ -170,6 +170,8 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 						});
 						continue;
 					} else {
+						console.log('Partial payment');
+
 						const percentagePaid =
 							(royaltyPayment.amount * (100 / royaltyReceiver.share)) / royaltiesToPay;
 						const amountPaid = royaltyPayment.amount * (100 / royaltyReceiver.share);
@@ -183,6 +185,8 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 								'; Percentage: ' +
 								percentagePaid * 100
 						);
+
+						// TODO: Check if remaining amount was paid via tool
 
 						checkedNfts.push({
 							mint: nft.mint,
@@ -206,6 +210,8 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 						nftStateAccount &&
 						Number(nftStateAccount.repayTimestamp.toNumber()) >= nft.latestSale.timestamp
 					) {
+						console.log('Royalty payment via tool found');
+
 						// Royalties paid
 						checkedNfts.push({
 							mint: nft.mint,
@@ -216,6 +222,8 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 						});
 						continue;
 					} else {
+						console.log('No royalty payment via tool found');
+
 						checkedNfts.push({
 							mint: nft.mint,
 							royaltiesPaid: false,

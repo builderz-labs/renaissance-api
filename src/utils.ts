@@ -13,7 +13,7 @@ export const getNftStateApi = async (address: PublicKey, env: any): Promise<NftS
 				id: 1,
 				method: 'getAccountInfo',
 				params: [
-					'2VyUkDhg9gzDd3xJe7KQ5Fqw4UR1yhKV9bWzam6bRZD2',
+					address.toBase58(),
 					{
 						encoding: 'base64',
 					},
@@ -22,9 +22,16 @@ export const getNftStateApi = async (address: PublicKey, env: any): Promise<NftS
 		})
 	).json();
 
+	let res = accountInfo.result.value;
+
+	res.data = accountInfo.result.value.data = Buffer.from(
+		accountInfo.result.value.data[0],
+		'base64'
+	);
+
 	if (!accountInfo) {
 		throw new Error(`Account ${address.toBase58()} not found`);
 	}
-	const [nftState] = NftState.fromAccountInfo(accountInfo);
+	const [nftState] = NftState.fromAccountInfo(res);
 	return nftState;
 };
