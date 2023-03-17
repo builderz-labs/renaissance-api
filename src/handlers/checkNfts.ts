@@ -185,15 +185,36 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 						);
 
 						// TODO: Check if remaining amount was paid via tool
+						const [nftStateAddress] = PublicKey.findProgramAddressSync(
+							[Buffer.from('nft-state'), new PublicKey(nft.mint).toBuffer()],
+							PROGRAM_ID
+						);
 
-						checkedNfts.push({
-							mint: nft.mint,
-							royaltiesPaid: false,
-							royaltiesToPay: outstanding,
-							royaltiesPaidAmount: amountPaid,
-							status: 'partial',
-						});
-						continue;
+						const nftStateAccount = await tryGetAccount(nftStateAddress, env);
+
+						if (
+							nftStateAccount &&
+							Number(nftStateAccount.repayTimestamp.toNumber()) >= nft.latestSale.timestamp
+						) {
+							// Royalties paid
+							checkedNfts.push({
+								mint: nft.mint,
+								royaltiesPaid: true,
+								royaltiesPaidAmount: royaltiesToPay,
+								royaltiesToPay: 0,
+								status: 'paid-with-tool',
+							});
+							continue;
+						} else {
+							checkedNfts.push({
+								mint: nft.mint,
+								royaltiesPaid: false,
+								royaltiesToPay: outstanding,
+								royaltiesPaidAmount: amountPaid,
+								status: 'partial',
+							});
+							continue;
+						}
 					}
 				} else {
 					// No royalty payment found at sale -> Check repayment via tool
