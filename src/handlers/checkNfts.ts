@@ -139,9 +139,6 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 				const royaltyPayment = nft.latestSale.nativeTransfers.find(
 					(transfer: any) => transfer.toUserAccount === royaltyReceiver.address
 				);
-				// const royaltyPayment = _.find(nft.latestSale.nativeTransfers, {
-				//   toUserAccount: royaltyReceiver.address,
-				// });
 
 				if (royaltiesToPay === 0) {
 					// Royalties paid
