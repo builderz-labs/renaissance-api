@@ -1,6 +1,18 @@
 import { PublicKey } from '@solana/web3.js';
 import { NftState } from '@builderz/royalty-solution';
 
+export const encodePaginationToken = (mint: string, index: number) => {
+	const token = `${mint}:${index}`;
+	return Buffer.from(token).toString('base64');
+};
+
+export const decodePaginationToken = (token: string) => {
+	const decodedToken = Buffer.from(token, 'base64').toString();
+	const [mint, indexStr] = decodedToken.split(':');
+	const index = parseInt(indexStr, 10);
+	return { mint, index };
+};
+
 export const getNftStateApi = async (address: PublicKey, env: any): Promise<NftState> => {
 	const accountInfo = await (
 		await env.HELIUS.fetch('https://helius-rpc-proxy.builderzlabs.workers.dev', {
@@ -55,9 +67,16 @@ export const getCollectionData = async (
 		})
 	).json();
 
-	console.log(nftMetadata);
+	const sfbp = nftMetadata[0].onChainMetadata.metadata.data.sellerFeeBasisPoints;
+	const royaltyWallet = nftMetadata[0].onChainMetadata.metadata.data.creators.find(
+		(c: any) => c.share > 0
+	);
 
-	return { sfbp: 500, royaltyWalletPercentage: 1, royaltyWallet: '' };
+	return {
+		sfbp: sfbp,
+		royaltyWalletPercentage: royaltyWallet.share / 100,
+		royaltyWallet: royaltyWallet.address,
+	};
 };
 
 export const getAllMints = async (
