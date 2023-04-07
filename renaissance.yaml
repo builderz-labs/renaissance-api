@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  title: Renaissance API
+  version: 1.0.0
+servers:
+  - url: 'https://renaissance-api.builderzlabs.workers.dev/api/v1'
+paths:
+  /checked-nfts:
+    post:
+      summary: Retrieve information about NFTs and their royalty status.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mints:
+                  type: array
+                  items:
+                    type: string
+                paginationToken:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  checkedNfts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        mint:
+                          type: string
+                        royaltiesPaid:
+                          type: boolean
+                        royaltiesPaidAmount:
+                          type: integer
+                        royaltiesToPay:
+                          type: integer
+                        status:
+                          type: string
+                  paginationToken:
+                    type: string
+                    nullable: true
+      security:
+        - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: renaissance-api-key

@@ -75,7 +75,11 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 				body: JSON.stringify({
 					query: {
 						accounts: mints,
+						startTime: 1664607600,
 						types: ['NFT_SALE'],
+					},
+					options: {
+						limit: 1000,
 					},
 				}),
 			})
