@@ -26,7 +26,7 @@ export type checkNftRes = {
 };
 
 const checkNfts = async (req: Request, env: any): Promise<Response> => {
-	const limit = 100;
+	const limit = 40;
 
 	let mints: string[];
 	let paginationToken: string | undefined = undefined;
