@@ -23,6 +23,7 @@ export type checkNftRes = {
 	royaltiesToPay: number;
 	royaltiesPaidAmount: number;
 	status: string;
+	redemptionTimestampe?: number;
 };
 
 const checkNfts = async (req: Request, env: any): Promise<Response> => {
@@ -215,6 +216,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 							royaltiesPaidAmount: royaltiesToPay,
 							royaltiesToPay: 0,
 							status: 'paid-with-tool',
+							redemptionTimestampe: nftStateAccount.repayTimestamp.toNumber(),
 						});
 						continue;
 					} else {
@@ -250,6 +252,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 						royaltiesToPay: 0,
 						royaltiesPaidAmount: royaltiesToPay,
 						status: 'paid-with-tool',
+						redemptionTimestampe: nftStateAccount.repayTimestamp.toNumber(),
 					});
 					continue;
 				} else {
