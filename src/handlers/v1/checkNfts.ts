@@ -23,7 +23,7 @@ export type checkNftRes = {
 	royaltiesToPay: number;
 	royaltiesPaidAmount: number;
 	status: string;
-	redemptionTimestampe?: number;
+	redemptionTimestamp?: number;
 };
 
 const checkNfts = async (req: Request, env: any): Promise<Response> => {
@@ -61,6 +61,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 		sellerFeeBasisPoints: number;
 		creators: { address: string; share: number; verified: boolean }[];
 		latestSale: any;
+		error?: string;
 	}[] = [];
 
 	let checkedNfts: checkNftRes[] = [];
@@ -99,6 +100,16 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 		nftDatas = metadatas.map((m: any) => {
 			const { metadata } = m.onChainMetadata;
 
+			if (!metadata) {
+				return {
+					mint: m.account,
+					sellerFeeBasisPoints: null,
+					creators: null,
+					latestSale: null,
+					error: 'No Metadata found',
+				};
+			}
+
 			const salesForNft = saleDatas.result.filter((s: any) =>
 				s.nfts.some((nft: any) => nft.mint === metadata.mint)
 			);
@@ -124,6 +135,16 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 	// Check if royalties paid
 
 	for (const nft of nftDatas) {
+		if (nft.error) {
+			checkedNfts.push({
+				mint: nft.mint,
+				royaltiesPaid: false,
+				royaltiesToPay: 0,
+				royaltiesPaidAmount: 0,
+				status: 'error',
+			});
+			continue;
+		}
 		// Get one creator
 		const royaltyReceiver = nft.creators?.find(c => c.share > 0);
 
@@ -216,7 +237,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 							royaltiesPaidAmount: royaltiesToPay,
 							royaltiesToPay: 0,
 							status: 'paid-with-tool',
-							redemptionTimestampe: nftStateAccount.repayTimestamp.toNumber(),
+							redemptionTimestamp: nftStateAccount.repayTimestamp.toNumber(),
 						});
 						continue;
 					} else {
@@ -252,7 +273,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 						royaltiesToPay: 0,
 						royaltiesPaidAmount: royaltiesToPay,
 						status: 'paid-with-tool',
-						redemptionTimestampe: nftStateAccount.repayTimestamp.toNumber(),
+						redemptionTimestamp: nftStateAccount.repayTimestamp.toNumber(),
 					});
 					continue;
 				} else {
