@@ -27,7 +27,7 @@ export type checkNftRes = {
 };
 
 const checkNfts = async (req: Request, env: any): Promise<Response> => {
-	const limit = 40;
+	const limit = 10;
 
 	let mints: string[];
 	let paginationToken: string | undefined = undefined;
@@ -53,7 +53,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 		mints = mints.slice(0, limit);
 	}
 
-	const nftEventsUrl = `https://helius-rpc-proxy.builderzlabs.workers.dev/v1/nft-events`;
+	// const nftEventsUrl = `https://helius-rpc-proxy.builderzlabs.workers.dev/v1/nft-events`;
 	const metadataUrl = `https://helius-rpc-proxy.builderzlabs.workers.dev/v0/token-metadata`;
 
 	let nftDatas: {
@@ -68,24 +68,22 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 
 	// Try get latest Sales + NFT Metadatas
 	try {
-		const saleDatas = await (
-			await env.HELIUS.fetch(nftEventsUrl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					query: {
-						accounts: mints,
-						startTime: 1664607600,
-						types: ['NFT_SALE'],
+		const saleDatasPromises = mints.map(mint =>
+			env.HELIUS.fetch(
+				`https://api.helius.xyz/v0/addresses/${mint}/transactions?api-key=90e002a7-5c4c-41c1-8885-16dfe78b80c1&type=NFT_SALE&limit=1`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
 					},
-					options: {
-						limit: 1000,
-					},
-				}),
-			})
-		).json();
+				}
+			)
+				.then((res: Response) => res.json())
+				.then((result: any) => ({ mint, result }))
+				.catch((error: Error) => ({ mint, error: error.message }))
+		);
+
+		const saleDatas = await Promise.allSettled(saleDatasPromises);
 
 		const metadatas = await (
 			await env.HELIUS.fetch(metadataUrl, {
@@ -110,27 +108,39 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 				};
 			}
 
-			const salesForNft = saleDatas.result.filter((s: any) =>
-				s.nfts.some((nft: any) => nft.mint === metadata.mint)
-			);
+			// @ts-ignore
+			const latestSale = saleDatas
+				.filter(
+					(
+						result
+					): result is PromiseFulfilledResult<{ mint: string; result: any; error?: string }> =>
+						result.status === 'fulfilled'
+				)
+				.find(({ value }) => value.mint === metadata.mint);
 
-			const latestSale = salesForNft.length
-				? salesForNft.reduce((accumulator: any, currentValue: any) => {
-						return currentValue.timestamp > accumulator.timestamp ? currentValue : accumulator;
-				  }, salesForNft[0])
-				: null;
+			if (latestSale?.value.error || typeof latestSale?.value.result === 'string') {
+				return {
+					mint: metadata.mint,
+					sellerFeeBasisPoints: metadata.data.sellerFeeBasisPoints,
+					creators: metadata.data.creators,
+					latestSale: null,
+					error: latestSale?.value.result,
+				};
+			}
 
 			return {
 				mint: metadata.mint,
 				sellerFeeBasisPoints: metadata.data.sellerFeeBasisPoints,
 				creators: metadata.data.creators,
-				latestSale: latestSale,
+				latestSale: latestSale?.value.result[0] || null,
 			};
 		});
 	} catch (error: any) {
 		console.log(error);
 		new Response('Not found', { status: 404 });
 	}
+
+	console.log('NFT DATAs: ', nftDatas[0].latestSale);
 
 	// Check if royalties paid
 
@@ -171,7 +181,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 			});
 		} else {
 			// There is a latest sale
-			const saleAmount = nft.latestSale.amount; // total amount
+			const saleAmount = nft.latestSale.events.nft.amount; // total amount
 			const royaltiesToPay = (saleAmount * nft.sellerFeeBasisPoints) / 10000;
 			const royaltyPayment = nft.latestSale.nativeTransfers.find(
 				(transfer: any) => transfer.toUserAccount === royaltyReceiver.address
