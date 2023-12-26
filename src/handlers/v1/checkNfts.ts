@@ -70,7 +70,7 @@ const checkNfts = async (req: Request, env: any): Promise<Response> => {
 	try {
 		const saleDatasPromises = mints.map(mint =>
 			env.HELIUS.fetch(
-				`https://api.helius.xyz/v0/addresses/${mint}/transactions?api-key=90e002a7-5c4c-41c1-8885-16dfe78b80c1&type=NFT_SALE&limit=1`,
+				`https://api.helius.xyz/v0/addresses/${mint}/transactions?api-key=6bad2ffe-d003-11ed-afa1-0242ac120002&type=NFT_SALE&limit=1`,
 				{
 					method: 'GET',
 					headers: {
